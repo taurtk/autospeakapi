@@ -122,6 +122,7 @@ def initiate_call():
     email = data.get("email")
     name = data.get("name")
     phone = data.get("phone")
+    print(email, name, phone)
     
    
     
