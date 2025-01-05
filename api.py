@@ -131,7 +131,7 @@ def initiate_call():
 
     call_data = {
         "phone_number": phone,
-        "task": TASK_SCRIPTS,
+        "task": TASK_SCRIPTS["Banks"],
         "summarize": True,
         "record": True
     }
