@@ -60,21 +60,16 @@ def poll_call_details(call_id):
 @app.route('/initiate-call', methods=['POST'])
 def initiate_call():
     data = request.json
-    phone_number = data.get("phone_number")
+    phone = data.get("phone")
     name = data.get("name")
     email = data.get("email")
-    category = data.get("category")
     
-    if not all([phone_number, name, email, category]):
+    if not all([phone, name, email]):
         return jsonify({"error": "Missing required parameters"}), 400
 
-    task_script = TASK_SCRIPTS.get(category)
-    if not task_script:
-        return jsonify({"error": "Invalid category"}), 400
-
     call_data = {
-        "phone_number": phone_number,
-        "task": task_script,
+        "phone": phone,
+        "task": "Your default task script here",
         "summarize": True,
         "record": True
     }
