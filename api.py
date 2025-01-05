@@ -60,6 +60,7 @@ def poll_call_details(call_id):
 @app.route('/initiate-call', methods=['POST'])
 def initiate_call():
     data = request.json
+    print(data)
     email = data.get("email")
     name = data.get("name")
     phone = data.get("phone")
