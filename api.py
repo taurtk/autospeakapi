@@ -130,7 +130,7 @@ def initiate_call():
     #     return jsonify({"error": "Missing required parameters"}), 400
 
     call_data = {
-        "phone": phone,
+        "phone_number": phone,
         "task": TASK_SCRIPTS,
         "summarize": True,
         "record": True
