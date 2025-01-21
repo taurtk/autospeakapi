@@ -83,21 +83,12 @@ Say: "Thank you for choosing [Bank/Company Name]. Have a great day!"
 """
 }
 
-# Endpoint to fetch task scripts based on category
-@app.route('/get-task-script', methods=['GET'])
-def get_task_script():
-    category = request.args.get('category')
-    if category in TASK_SCRIPTS:
-        return jsonify({"task_script": TASK_SCRIPTS[category]})
-    else:
-        return jsonify({"error": "Invalid category"}), 400
-
 # Function to poll call details
 def poll_call_details(call_id):
     url = "https://api.bland.ai/logs"
     data = {"call_id": call_id}
     headers = {"Authorization": f"Bearer {BLAND_API_KEY}", "Content-Type": "application/json"}
-    
+
     retries = 10
     delay = 15  # Seconds between retries
 
@@ -113,18 +104,27 @@ def poll_call_details(call_id):
             return {"error": str(e)}
 
     return {"error": "Call did not complete within the allowed attempts"}
+
+@app.route('/get-task-script', methods=['GET'])
+def get_task_script():
+    category = request.args.get('category')
+    if category in TASK_SCRIPTS:
+        return jsonify({"task_script": TASK_SCRIPTS[category]})
+    else:
+        return jsonify({"error": "Invalid category"}), 400
+
 @app.route('/initiate-call', methods=['POST'])
 def initiate_call():
-    data = request.json
-    if not data:  # Check if data is None
+    if not request.is_json:
         return jsonify({"error": "Request must contain a valid JSON payload"}), 400
 
-    # Extracting the fields from the JSON payload
+    data = request.get_json()
+
+    # Extracting and validating required fields
     email = data.get("email")
     name = data.get("name")
     phone = data.get("phone")
 
-    # Validate the required fields
     if not all([email, name, phone]):
         return jsonify({"error": "Missing required parameters: 'email', 'name', and 'phone' are mandatory"}), 400
 
@@ -161,7 +161,6 @@ def initiate_call():
         return jsonify({"error": f"Proxy error: {str(e)}"}), 502
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
-
 
 if __name__ == '__main__':
     app.run(debug=True)
