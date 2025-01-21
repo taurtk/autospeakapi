@@ -7,7 +7,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # API Key
-BLAND_API_KEY = 'org_8eabc93849311b46844d2ff69b684f544bf7adb1ed6a4b93b328e92791bfa79e1909301b43eadc679bde69'
+BLAND_API_KEY = 'org_fcfd61ec9ebaa2fcfa5b6c3b225aa4dd603d0b587e1493e16003e3f8bed4db9f375dc3a57d2493367c2069'
 
 # Task Scripts
 TASK_SCRIPTS = {
@@ -113,32 +113,37 @@ def poll_call_details(call_id):
             return {"error": str(e)}
 
     return {"error": "Call did not complete within the allowed attempts"}
-
-# Endpoint to initiate an outbound call
 @app.route('/initiate-call', methods=['POST'])
 def initiate_call():
     data = request.json
-    print(data)
+    if not data:  # Check if data is None
+        return jsonify({"error": "Request must contain a valid JSON payload"}), 400
+
+    # Extracting the fields from the JSON payload
     email = data.get("email")
     name = data.get("name")
     phone = data.get("phone")
-    print(email, name, phone)
-    
-   
-    
-    # if not all([email, name, phone]):
-    #     return jsonify({"error": "Missing required parameters"}), 400
+
+    # Validate the required fields
+    if not all([email, name, phone]):
+        return jsonify({"error": "Missing required parameters: 'email', 'name', and 'phone' are mandatory"}), 400
 
     call_data = {
         "phone_number": phone,
-        "task": TASK_SCRIPTS["Banks"],
+        "task": TASK_SCRIPTS["Banks"],  # Adjust task category as needed
         "summarize": True,
         "record": True
     }
 
     headers = {"Authorization": f"Bearer {BLAND_API_KEY}", "Content-Type": "application/json"}
+
     try:
-        response = requests.post("https://api.bland.ai/call", json=call_data, headers=headers, proxies={"http": None, "https": None})
+        response = requests.post(
+            "https://api.bland.ai/call",
+            json=call_data,
+            headers=headers,
+            proxies={"http": None, "https": None}
+        )
         if response.status_code == 200:
             call_response = response.json()
             call_id = call_response.get("call_id")
@@ -156,6 +161,7 @@ def initiate_call():
         return jsonify({"error": f"Proxy error: {str(e)}"}), 502
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
