@@ -82,7 +82,6 @@ Say: "I’ll make sure your issue is prioritized. Our team will contact you with
 Say: "Thank you for choosing [Bank/Company Name]. Have a great day!"
 """
 }
-
 # Function to poll call details
 def poll_call_details(call_id):
     url = "https://api.bland.ai/logs"
@@ -94,7 +93,7 @@ def poll_call_details(call_id):
 
     for attempt in range(retries):
         try:
-            response = requests.post(url, json=data, headers=headers, proxies={"http": None, "https": None})
+            response = requests.post(url, json=data, headers=headers)
             if response.status_code == 200:
                 call_details = response.json()
                 if call_details.get('queue_status', '').lower() in ['complete', 'completed']:
@@ -105,45 +104,40 @@ def poll_call_details(call_id):
 
     return {"error": "Call did not complete within the allowed attempts"}
 
-@app.route('/get-task-script', methods=['GET'])
-def get_task_script():
-    category = request.args.get('category')
-    if category in TASK_SCRIPTS:
-        return jsonify({"task_script": TASK_SCRIPTS[category]})
-    else:
-        return jsonify({"error": "Invalid category"}), 400
-
 @app.route('/initiate-call', methods=['POST'])
 def initiate_call():
-    if not request.is_json:
-        return jsonify({"error": "Request must contain a valid JSON payload"}), 400
-
-    data = request.get_json()
-
-    # Extracting and validating required fields
-    email = data.get("email")
-    name = data.get("name")
-    phone = data.get("phone")
-
-    if not all([email, name, phone]):
-        return jsonify({"error": "Missing required parameters: 'email', 'name', and 'phone' are mandatory"}), 400
-
-    call_data = {
-        "phone_number": phone,
-        "task": TASK_SCRIPTS["Banks"],  # Adjust task category as needed
-        "summarize": True,
-        "record": True
-    }
-
-    headers = {"Authorization": f"Bearer {BLAND_API_KEY}", "Content-Type": "application/json"}
-
     try:
+        # Determine if the request is JSON or form data
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form  # Handle form-encoded data
+
+        # Extract and validate required fields
+        email = data.get("email")
+        name = data.get("name")
+        phone = data.get("phone")
+
+        if not all([email, name, phone]):
+            return jsonify({"error": "Missing required parameters: 'email', 'name', and 'phone' are mandatory"}), 400
+
+        # Prepare call data
+        call_data = {
+            "phone_number": phone,
+            "task": TASK_SCRIPTS.get("Banks", "Default Task"),  # Adjust task category as needed
+            "summarize": True,
+            "record": True
+        }
+
+        headers = {"Authorization": f"Bearer {BLAND_API_KEY}", "Content-Type": "application/json"}
+
+        # Send the API request to initiate the call
         response = requests.post(
             "https://api.bland.ai/call",
             json=call_data,
-            headers=headers,
-            proxies={"http": None, "https": None}
+            headers=headers
         )
+
         if response.status_code == 200:
             call_response = response.json()
             call_id = call_response.get("call_id")
@@ -157,8 +151,9 @@ def initiate_call():
                 return jsonify({"error": "Call ID not found in response"}), 500
         else:
             return jsonify({"error": response.text}), response.status_code
-    except requests.exceptions.ProxyError as e:
-        return jsonify({"error": f"Proxy error: {str(e)}"}), 502
+
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": f"Request error: {str(e)}"}), 502
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
