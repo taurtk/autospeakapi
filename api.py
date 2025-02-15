@@ -395,7 +395,8 @@ def initiate_call():
             "phone_number": phone,
             "task": TASK_SCRIPTS.get("Banks", "Default Task"),  # Adjust task category as needed
             "summarize": True,
-            "record": True
+            "record": True,
+             "webhook": "https://webhook-6owf.onrender.com/grok-webhook"
         }
 
         headers = {"Authorization": f"Bearer {BLAND_API_KEY}", "Content-Type": "application/json"}
