@@ -351,27 +351,7 @@ Say: "Thank you for choosing [Bank/Company Name]. Have a great day!"
 
 """
 }
-# Function to poll call details
-def poll_call_details(call_id):
-    url = "https://api.bland.ai/logs"
-    data = {"call_id": call_id}
-    headers = {"Authorization": f"Bearer {BLAND_API_KEY}", "Content-Type": "application/json"}
 
-    retries = 10
-    delay = 15  # Seconds between retries
-
-    for attempt in range(retries):
-        try:
-            response = requests.post(url, json=data, headers=headers)
-            if response.status_code == 200:
-                call_details = response.json()
-                if call_details.get('queue_status', '').lower() in ['complete', 'completed']:
-                    return call_details
-            time.sleep(delay)
-        except Exception as e:
-            return {"error": str(e)}
-
-    return {"error": "Call did not complete within the allowed attempts"}
 
 @app.route('/initiate-call', methods=['POST'])
 def initiate_call():
