@@ -7,7 +7,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # API Key
-BLAND_API_KEY = 'org_1216a9da14257a430ebc4e0f7e82036db3431e850572107cc0ac0370b6b1974e206e17d3e15fed1488a669'
+BLAND_API_KEY = 'API_KEY'
 
 # Task Scripts
 TASK_SCRIPTS = {
